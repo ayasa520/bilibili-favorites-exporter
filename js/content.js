@@ -60,6 +60,24 @@ class BilibiliExporter {
     }
 
     createDialog() {
+        // 如果对话框已存在，只需显示
+        if (this.dialogEl) {
+            this.dialogEl.style.display = '';
+            // 恢复导出状态和进度显示
+            this.updateExportControls();
+            if (this.exportState.exporting) {
+                this.exportState.currentProgress.forEach((state) => {
+                    this.updateProgress(
+                        state.text, 
+                        state.item, 
+                        state.progress,
+                        state.waiting
+                    );
+                });
+            }
+            return;
+        }
+
         const dialog = document.createElement('div');
         dialog.className = 'bilibili-exporter-dialog';
         dialog.innerHTML = `
@@ -89,8 +107,8 @@ class BilibiliExporter {
             </div>
             <div class="setting-item">
               <label class="kawaii-label">
-                <input type="checkbox" id="saveCover" checked>
-                <span class="label-text">保存封面图片</span>
+                <input type="checkbox" id="saveCover" disabled>
+                <span class="label-text">保存封面图片(暂未实现)</span>
               </label>
               <div class="tip">不保存可以减小导出文件大小</div>
             </div>
@@ -99,7 +117,7 @@ class BilibiliExporter {
                 <input type="checkbox" id="processInvalidVideo" checked>
                 <span class="label-text">处理失效视频</span>
               </label>
-              <div class="tip">尝试从其他来源获取失效视频的信息</div>
+              <div class="tip">尝试从其他来源获取失效视频的信息，会大幅度降低导出速度</div>
             </div>
           </div>
         </div>
@@ -130,10 +148,18 @@ class BilibiliExporter {
             this.render();
         }
 
-        // 如果正在导出，恢复进度显示
+        // 恢复导出状态
+        this.updateExportControls();  // 确保按钮状态正确
+
+        // 如果正在导出，恢复所有进度显示
         if (this.exportState.exporting) {
             this.exportState.currentProgress.forEach((state) => {
-                this.updateProgress(state.text, state.item, state.progress);
+                this.updateProgress(
+                    state.text, 
+                    state.item, 
+                    state.progress,
+                    state.waiting
+                );
             });
         }
     }
@@ -260,10 +286,13 @@ class BilibiliExporter {
       <label class="item" data-id="${item.type}_${item.id}">
         <div class="item-main">
           <input type="checkbox" ${item.checked ? 'checked' : ''}>
-          <span class="item-title">${item.title} (${item.media_count}个内容)</span>
+          <span class="item-title">${item.title} (${item.media_count}个视频)</span>
         </div>
         <div class="progress-wrapper" style="display: none;">
-          <div class="progress-text">0/${item.media_count}</div>
+          <div class="progress-text waiting">
+            <span class="waiting-icon">✿</span>
+            <span>等待中...</span>
+          </div>
           <div class="progress-bar" data-id="${item.type}_${item.id}">
             <div class="progress-inner"></div>
           </div>
@@ -274,7 +303,7 @@ class BilibiliExporter {
 
     // 修改恢复选中状态的方法
     restoreCheckState() {
-        // 只选择收藏夹和合集的复选框，不包括设置选项的复选框
+        // 选择收藏夹和合集的复选框，不包括设置选项的复选框
         const checkboxes = this.dialogEl.querySelectorAll('.item input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             const label = checkbox.closest('.item');
@@ -301,10 +330,14 @@ class BilibiliExporter {
 
     // 绑定事件
     bindEvents() {
-        // 关闭对话框
-        this.dialogEl.querySelector('#closeDialog').addEventListener('click', () => {
-            this.dialogEl.remove();
-            this.dialogEl = null;
+        // 关闭对话框 - 改为隐藏而不是移除
+        this.dialogEl.querySelector('#closeDialog').addEventListener('click', async () => {
+            if (this.exportState.exporting) {
+                const shouldClose = await this.showKawaiiConfirm('正在导出中，确定要关闭吗？导出会继续在后台进行');
+                if (!shouldClose) return;
+            }
+            // 只是隐藏对话框，不移除
+            this.dialogEl.style.display = 'none';
         });
 
         // 导出
@@ -327,7 +360,7 @@ class BilibiliExporter {
 
         // section级别的事件处理
         this.dialogEl.querySelector('#favoriteFolders').addEventListener('click', (e) => {
-            // ��选按钮
+            // 全选按钮
             if (e.target.classList.contains('select-all-section')) {
                 const type = e.target.dataset.type;
                 const items = type === 'fav' ? this.state.favorites : this.state.collections;
@@ -395,6 +428,8 @@ class BilibiliExporter {
                 this.showKawaiiTip('正在停止导出... (。・ω・。)', 'info');
             }
         });
+
+
     }
 
     // 获取收藏夹内容
@@ -433,95 +468,90 @@ class BilibiliExporter {
         return data.data;
     }
 
-    // 导出选中的收藏夹和合集
-    async startExport() {
-        // 检查是否在导出的项目
-        if (this.exportState.exporting) {
-            this.showKawaiiTip('有收藏夹正在导出中呢，请等待完成后再试哦~ (。>﹏<｡)', 'warning');
-            return;
-        }
+    // 获取导出设置
+    getExportSettings() {
+        return {
+            interval: parseFloat(document.getElementById('requestInterval').value) * 1000,
+            // saveCover: document.getElementById('saveCover').checked,  // 移除这个选项
+            processInvalidVideo: document.getElementById('processInvalidVideo').checked
+        };
+    }
 
+    // 修改开始导出方法，使用统一的设置
+    async startExport() {
+        if (this.exportState.exporting) return;
+        
+        const settings = this.getExportSettings();
         const selectedItems = [
-            ...this.state.favorites.filter(item => item.checked),
-            ...this.state.collections.filter(item => item.checked)
+            ...this.state.favorites.filter(f => f.checked),
+            ...this.state.collections.filter(c => c.checked)
         ];
 
         if (selectedItems.length === 0) {
-            this.showKawaiiTip('请至少选择1个收藏夹或合集啦！(。>︿<)', 'warning');
+            this.showKawaiiTip('请至少选择一个收藏夹或合集 (。>︿<｡)', 'warning');
             return;
         }
 
+        // 添加开始导出的提示
+        this.showKawaiiTip('开始导出，请不要关闭或刷新页面 (。>ω<。)', 'info');
+        
+        this.exportState.exporting = true;
+        this.exportState.aborted = false;
+        this.updateExportControls();
+        
+        // 显示所有选中项的等待状态
+        selectedItems.forEach(item => {
+            this.updateProgress('等待中...', item, 0, true);
+        });
+
+        const results = {
+            favorites: [],
+            collections: []
+        };
+
         try {
-            this.exportState.exporting = true;
-            this.exportState.aborted = false;
-            this.updateExportControls();
-
-            // 添加馨提示
-            this.showKawaiiTip('开始导出啦！导出过程中请保持页面打开哦 (。・ω・。)♡', 'info');
-            this.updateProgress('开始导出...');
-
-            const exportData = {
-                timestamp: new Date().toISOString(),
-                uid: this.uid,
-                favorites: [],
-                collections: []
-            };
-
-            const interval = parseFloat(this.dialogEl.querySelector('#requestInterval').value) * 1000 || 2000;
-
-            // 导出收藏夹和合集内容
-            for (let i = 0; i < selectedItems.length; i++) {
-                if (this.exportState.aborted) {
-                    throw new Error('aborted');
-                }
-                const item = selectedItems[i];
-                this.updateProgress(`正在导出 ${item.title} (${i + 1}/${selectedItems.length})`);
-
+            for (const item of selectedItems) {
+                // 更新当前项为进行中状态
+                this.updateProgress('正在获取...', item, 0, false);
+                
                 if (item.type === 'fav') {
-                    const content = await this.exportFavoriteFolder(item, interval);
-                    exportData.favorites.push(content);
+                    const result = await this.exportFavoriteFolder(item, settings);
+                    results.favorites.push(result);
                 } else {
-                    const content = await this.exportCollection(item, interval);
-                    exportData.collections.push(content);
+                    const result = await this.exportCollection(item, settings);
+                    results.collections.push(result);
                 }
             }
 
-            // 创建并下载文件
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bilibili-favorites-${this.uid}-${new Date().getTime()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            // 导出完成，下载文件
+            if (!this.exportState.aborted) {
+                const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bilibili-favorites-${this.uid}-${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
 
-            this.updateProgress('导出完成！');
-            this.showKawaiiTip('导出完成啦！٩(◕‿｡)۶', 'success');
+                this.showKawaiiTip('导出完成啦! ٩(◕‿◕｡)۶', 'success');
+            }
         } catch (error) {
-            if (error.message === 'aborted') {
-                this.showKawaiiTip('已经停止导出啦~ (。・ω・。)', 'info');
-            } else if (error.message.includes('Extension context invalidated')) {
-                this.showKawaiiTip('扩展已更新，请刷新页面后重试呢 (。>﹏<｡)', 'error');
-            } else {
-                this.showKawaiiTip(`导出失败了呜呜呜 (´;ω;｀): ${error.message}`, 'error');
-                console.error('导出失败:', error);
+            if (error.message !== 'aborted') {
+                console.error('导出错误:', error);
+                this.showKawaiiTip('导出出错了... (。>︿<｡)', 'error');
             }
         } finally {
             this.exportState.exporting = false;
-            this.exportState.aborted = false;
             this.updateExportControls();
         }
     }
 
-    // 修改处理失效视频的方法
-    async processInvalidVideos(medias) {
-        // 获取是否保存封面和处理失效视频的设置
-        const saveCover = this.dialogEl.querySelector('#saveCover').checked;
-        const processInvalid = this.dialogEl.querySelector('#processInvalidVideo').checked;
+    // 修改处理失效视频的方法，使用统一的设置
+    async processInvalidVideos(medias, processInvalidVideo, saveCover) {
 
         // 确保 medias 是数组
         if (!Array.isArray(medias) || !medias) {
-            console.warn('medias 不是��组:', medias);
+            console.warn('medias 不是数组:', medias);
             return [];
         }
         
@@ -539,7 +569,7 @@ class BilibiliExporter {
             if (isInvalid) {
                 media.invalid = true; // 始终标记失效状态
                 
-                if (processInvalid) {
+                if (processInvalidVideo) {
                     try {
                         const info = await this.fetchBiliplusInfo(media.bvid);
                         if (info) {
@@ -556,16 +586,16 @@ class BilibiliExporter {
                     }
                 }
                 
-                // 如果不处理失效视频或获取信息失败���使用默认标记
+                // 如果不处理失效视频或获取信息失败使用默认标记
                 media.title = `[已失效] 未知视频`;
-                if (!saveCover) {
-                    // media.cover = null;
-                }
+                // if (!saveCover) {
+                //     // media.cover = null;
+                // }
             } else {
                 media.invalid = false;
-                if (!saveCover) {
-                    // media.cover = null;
-                }
+                // if (!saveCover) {
+                //     // media.cover = null;
+                // }
             }
         }
         
@@ -628,6 +658,8 @@ class BilibiliExporter {
             console.warn('常规查询失败:', error);
         }
 
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // 2. 尝试API查询
         try {
             const response = await sendMessage(`https://www.biliplus.com/api/view?id=${avid}`);
@@ -645,6 +677,8 @@ class BilibiliExporter {
         } catch (error) {
             console.warn('API查询失败:', error);
         }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // 3. 尝试历史归档查询
         try {
@@ -687,7 +721,7 @@ class BilibiliExporter {
     }
 
     // 修改导出收藏夹的方法
-    async exportFavoriteFolder(folder, interval) {
+    async exportFavoriteFolder(folder, settings) {
         const result = {
             id: folder.id,
             title: folder.title,
@@ -721,7 +755,7 @@ class BilibiliExporter {
                 }
 
                 // 处理失效视频
-                const processedMedias = await this.processInvalidVideos(data.medias || []);
+                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.medias.push(...processedMedias);
 
                 const progress = (result.medias.length / data.info.media_count) * 100;
@@ -735,7 +769,7 @@ class BilibiliExporter {
                     break;
                 }
 
-                await new Promise(resolve => setTimeout(resolve, interval));
+                await new Promise(resolve => setTimeout(resolve, settings.interval));
                 page++;
             }
             return result;
@@ -749,7 +783,7 @@ class BilibiliExporter {
     }
 
     // 修改导出合集的方法
-    async exportCollection(collection, interval) {
+    async exportCollection(collection, settings) {
         const result = {
             id: collection.id,
             title: collection.title,
@@ -775,7 +809,7 @@ class BilibiliExporter {
                 const data = await this.getCollectionContent(collection.id, page, pageSize);
 
                 // 处理失效视频
-                const processedMedias = await this.processInvalidVideos(data.medias || []);
+                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.items.push(...processedMedias);
 
                 const progress = (result.items.length / collection.media_count) * 100;
@@ -789,26 +823,27 @@ class BilibiliExporter {
                     break;
                 }
 
-                await new Promise(resolve => setTimeout(resolve, interval));
+                await new Promise(resolve => setTimeout(resolve, settings.interval));
                 page++;
             }
             return result;
         } catch (error) {
             if (error.message === 'aborted') {
-                this.updateProgress(`已停止获取 ${collection.title}`, collection);
+                this.updateProgress(`停止获取 ${collection.title}`, collection);
                 throw error;
             }
             throw error;
         }
     }
 
-    updateProgress(text, item = null, progress = 0) {
+    updateProgress(text, item = null, progress = 0, waiting = false) {
         // 保存进度状态
         if (item) {
             this.exportState.currentProgress.set(`${item.type}_${item.id}`, {
                 text,
                 progress,
-                item
+                item,
+                waiting
             });
         }
 
@@ -818,18 +853,30 @@ class BilibiliExporter {
                 const label = this.dialogEl.querySelector(`label[data-id="${item.type}_${item.id}"]`);
                 if (label) {
                     const progressWrapper = label.querySelector('.progress-wrapper');
-                    const progressBar = progressWrapper.querySelector('.progress-bar');
                     const progressText = progressWrapper.querySelector('.progress-text');
+                    const progressBar = progressWrapper.querySelector('.progress-bar');
                     const innerBar = progressBar.querySelector('.progress-inner');
 
                     progressWrapper.style.display = 'block';
-                    innerBar.style.width = `${progress}%`;
 
-                    const currentCount = Math.floor(item.media_count * (progress / 100));
-                    progressText.textContent = `${currentCount}/${item.media_count}`;
+                    if (waiting) {
+                        // 显示等待状态
+                        progressText.className = 'progress-text waiting';
+                        progressText.innerHTML = `
+                            <span class="waiting-icon">✿</span>
+                            <span>等待中...</span>
+                        `;
+                        innerBar.style.width = '0%';
+                    } else {
+                        // 显示进度状态
+                        progressText.className = 'progress-text';
+                        const currentCount = Math.floor(item.media_count * (progress / 100));
+                        progressText.textContent = `${currentCount}/${item.media_count}`;
+                        innerBar.style.width = `${progress}%`;
 
-                    if (progress === 100) {
-                        innerBar.style.backgroundColor = '#52c41a';
+                        if (progress === 100) {
+                            innerBar.style.backgroundColor = '#52c41a';
+                        }
                     }
                 }
             }
@@ -846,7 +893,7 @@ class BilibiliExporter {
       <div class="confirm-content">
         <div class="confirm-text">
           <span class="confirm-icon">❀</span>
-          <span>确定要停止导出吗？(。>︿<｡)</span>
+          <span>确定要停止导出？(。>︿<｡)</span>
         </div>
         <div class="confirm-buttons">
           <button class="confirm-yes">停止导出</button>
@@ -885,13 +932,26 @@ class BilibiliExporter {
         if (this.dialogEl) {
             const startBtn = this.dialogEl.querySelector('#startExport');
             const abortBtn = this.dialogEl.querySelector('#abortExport');
+            const checkboxes = this.dialogEl.querySelectorAll('.item input[type="checkbox"]');
 
             if (this.exportState.exporting) {
+                // 正在导出时
                 startBtn.style.display = 'none';
                 abortBtn.style.display = 'block';
+                
+                // 禁用所有复选框
+                checkboxes.forEach(checkbox => {
+                    checkbox.disabled = true;
+                });
             } else {
+                // 未在导出时
                 startBtn.style.display = 'block';
                 abortBtn.style.display = 'none';
+                
+                // 启用所有复选框
+                checkboxes.forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
 
                 // 隐藏所有进度条
                 const progressWrappers = this.dialogEl.querySelectorAll('.progress-wrapper');
@@ -966,6 +1026,45 @@ class BilibiliExporter {
             }
         });
     }
+
+    // 添加一个可爱的确认框方法
+    async showKawaiiConfirm(message) {
+        const tipEl = document.createElement('div');
+        tipEl.className = 'kawaii-confirm';
+        tipEl.innerHTML = `
+            <div class="confirm-content">
+                <div class="confirm-text">
+                    <span class="confirm-icon">❀</span>
+                    <span>${message}</span>
+                </div>
+                <div class="confirm-buttons">
+                    <button class="confirm-yes">确定</button>
+                    <button class="confirm-no">取消</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(tipEl);
+        setTimeout(() => tipEl.classList.add('show'), 10);
+
+        try {
+            return await new Promise((resolve) => {
+                const handleConfirm = (confirmed) => {
+                    tipEl.classList.remove('show');
+                    setTimeout(() => {
+                        tipEl.remove();
+                        resolve(confirmed);
+                    }, 300);
+                };
+
+                tipEl.querySelector('.confirm-yes').addEventListener('click', () => handleConfirm(true));
+                tipEl.querySelector('.confirm-no').addEventListener('click', () => handleConfirm(false));
+            });
+        } catch (error) {
+            console.error('确认框出错了:', error);
+            return false;
+        }
+    }
 }
 
 // 修改初始化部分
@@ -1026,7 +1125,7 @@ const initializeExporter = () => {
         requestAnimationFrame(tryInitButton);
     });
 
-    // 只监听主要内容区域的变化
+    // 监听主要内容区域的变化
     observer.observe(document.body, {
         childList: true,
         subtree: true

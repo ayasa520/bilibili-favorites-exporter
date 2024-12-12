@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>收藏夹内容 - Bilibili Exporter</title>
+  <link rel="stylesheet" href="css/display.css">
+</head>
+<body>
+  <div class="export-container">
+    <header>
+      <h1>收藏夹内容</h1>
+      <div class="header-controls">
+        <button id="toggleTheme" class="theme-toggle" aria-label="切换主题">
+          <span class="theme-toggle-sun">🌞</span>
+          <span class="theme-toggle-moon">🌙</span>
+        </button>
+      </div>
+    </header>
+    
+    <!-- 添加文件上传区域 -->
+    <div id="uploadArea" class="upload-area">
+      <div class="upload-content">
+        <div class="upload-icon">📁</div>
+        <h2>请选择导出的JSON文件</h2>
+        <p>把JSON文件拖到这里，或者</p>
+        <label class="upload-button">
+          点击选择文件
+          <input type="file" id="fileInput" accept=".json" style="display: none;">
+        </label>
+      </div>
+    </div>
+
+    <!-- 内容区域，初始隐藏 -->
+    <main style="display: none;">
+      <div class="content">
+        <!-- 收藏夹列表 -->
+        <div class="favorites-list">
+          <!-- 自建收藏夹 -->
+          <section class="section">
+            <h2>自建收藏夹</h2>
+            <div class="folder-list" id="favList">
+              <!-- 这里会动态插入收藏夹 -->
+            </div>
+          </section>
+
+          <!-- 订阅合集 -->
+          <section class="section">
+            <h2>订阅合集</h2>
+            <div class="folder-list" id="colList">
+              <!-- 这里会动态插入合集 -->
+            </div>
+          </section>
+        </div>
+
+        <!-- 视频列表 -->
+        <div class="video-list">
+          <div class="list-header">
+            <h3 id="currentFolder">请选择要查看的收藏夹</h3>
+            <div class="list-controls">
+              <input type="text" id="searchVideo" placeholder="搜索视频...">
+              <select id="sortVideos">
+                <option value="fav_time" selected>按收藏时间排序</option>
+                <option value="time">按发布时间排序</option>
+                <option value="title">按标题排序</option>
+              </select>
+            </div>
+          </div>
+          <div id="videoContainer" class="video-grid">
+            <!-- 视频卡片模板 -->
+          </div>
+          <div class="pagination">
+            <button id="prevPage" disabled>上一页</button>
+            <div class="page-control">
+              <span>第</span>
+              <input type="number" id="pageInput" min="1" value="1">
+              <span>/ <span id="totalPages">1</span> 页</span>
+            </div>
+            <button id="nextPage">下一页</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/display.js"></script>
+</body>
+</html> 

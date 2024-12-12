@@ -6,7 +6,8 @@
   "permissions": [
     "cookies",
     "downloads",
-    "*://*.biliplus.com/*"
+    "*://*.biliplus.com/*",
+    "storage"
   ],
   "host_permissions": [
     "*://*.bilibili.com/*",
@@ -24,8 +25,14 @@
   "web_accessible_resources": [{
     "resources": ["fonts/*"],
     "matches": ["*://*.bilibili.com/*"]
+  }, {
+    "resources": ["pages/*"],
+    "matches": ["<all_urls>"]
   }],
   "background": {
     "service_worker": "js/background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
   }
 } 
