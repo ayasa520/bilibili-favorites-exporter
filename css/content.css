@@ -1,0 +1,707 @@
+:root {
+  --bg-primary: white;
+  --bg-secondary: #fafafa;
+  --text-primary: #18191c;
+  --text-secondary: #666;
+  --border-color: #e3e5e7;
+  --hover-bg: rgba(251, 114, 153, 0.05);
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+}
+
+/* BBDown暗色模式 */
+html.dark {
+  --bg-primary: #181818;
+  --bg-secondary: #232323;
+  --text-primary: #e1e1e1;
+  --text-secondary: #99a2aa;
+  --border-color: #2f2f2f;
+  --hover-bg: rgba(251, 114, 153, 0.08);
+  --modal-overlay: rgba(0, 0, 0, 0.8);
+}
+
+.export-favorites-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  cursor: pointer;
+  background: #fb7299;
+  color: white !important;
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(251, 114, 153, 0.4);
+  z-index: 999;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.export-favorites-btn:hover {
+  background: #fc8bab;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(251, 114, 153, 0.5);
+}
+
+.bilibili-exporter-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-overlay);
+  z-index: 999999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog-content {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 24px;
+  border-radius: 12px;
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.checkbox-list {
+  margin: 15px 0;
+}
+
+.checkbox-list label {
+  display: block;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.checkbox-list label:hover {
+  background: var(--bg-secondary);
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#startExport {
+  background: #fb7299;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+#startExport:hover {
+  background: #fc8bab;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.error {
+  color: #f56c6c;
+}
+
+/* 导出设置和导出内容的大块样式 ٩(◕‿◕｡)۶ */
+.section {
+  margin-bottom: 24px;
+}
+
+.section > h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* 让大块变得可爱~ (◍•ᴗ•◍) */
+.settings-content,
+#favoriteFolders {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+/* hover时边框变成粉色哦~ (灬ºωº灬)♡ */
+.settings-content:hover,
+#favoriteFolders:hover {
+  border-color: #fb7299;
+  box-shadow: 0 2px 8px rgba(251, 114, 153, 0.1);
+}
+
+/* 收藏夹和合集的section样式 (〃'▽'〃) */
+#favoriteFolders .section-header {
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  border: none;
+  background: none;
+  margin-bottom: 8px;
+}
+
+/* hover时只改变背景色~ */
+#favoriteFolders .section-header:hover {
+  background: var(--hover-bg);
+}
+
+/* 设置项的样式 (｡>ω<｡)ﾉ♡ */
+.setting-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.setting-item:not(:last-child) {
+  margin-bottom: 12px;
+}
+
+/* hover时背景变深~ */
+.setting-item:hover {
+  background: var(--hover-bg);
+}
+
+/* 让标签变得可爱 (｡>ㅿ<｡) */
+.setting-item .kawaii-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* 小提示也要可爱哦~ */
+.setting-item .tip {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-left: 24px;
+}
+
+.dialog-content h2 {
+  color: var(--text-primary);
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.section-header {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  background: var(--hover-bg);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.collapse-trigger {
+  color: #fb7299;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(251, 114, 153, 0.1);
+  transition: all 0.3s ease;
+}
+
+.section-title:hover .collapse-trigger {
+  background: rgba(251, 114, 153, 0.2);
+  transform: scale(1.1);
+}
+
+.section-content {
+  padding: 0 8px;
+  transition: all 0.3s ease;
+}
+
+.section-content.collapsed {
+  display: none;
+}
+
+.section-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.section-search {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 6px 16px;
+  transition: all 0.3s ease;
+}
+
+.section-search:focus {
+  border-color: #fb7299;
+  box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.2);
+  outline: none;
+}
+
+.select-all-section,
+.invert-select-section {
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid #fb7299;
+  background: var(--bg-primary);
+  color: #fb7299;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.select-all-section:hover,
+.invert-select-section:hover {
+  background: #fb7299;
+  color: white;
+}
+
+.dialog-buttons button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.dialog-buttons button:hover {
+  background: var(--bg-secondary);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.item:hover {
+  background: var(--hover-bg);
+}
+
+.item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-wrapper {
+  width: 200px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-bottom: 4px;
+}
+
+.progress-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.progress-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #fb7299, #fc8bab);
+  box-shadow: 0 0 4px rgba(251, 114, 153, 0.4);
+  transition: width 0.3s ease;
+}
+
+.progress-inner[style*="100%"] {
+  background: linear-gradient(90deg, #52c41a, #85ce61);
+}
+
+.item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.item input[type="checkbox"]:checked {
+  background-color: #fb7299;
+  border-color: #fb7299;
+}
+
+#closeDialog {
+  border: 1px solid var(--border-color);
+  padding: 8px 24px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+#closeDialog:hover {
+  border-color: #fb7299;
+  color: #fb7299;
+}
+
+/* 间隔设置样式 */
+.interval-setting {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.interval-setting:hover {
+  border-color: #fb7299;
+  box-shadow: 0 2px 8px rgba(251, 114, 153, 0.1);
+}
+
+.kawaii-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.label-text {
+  font-weight: 500;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 4px 12px;
+  transition: all 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: #fb7299;
+  box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.2);
+}
+
+#requestInterval {
+  width: 50px;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+}
+
+.unit {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.tip {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding-left: 4px;
+}
+
+/* 禁用状态的按钮样式 */
+.section-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.section-controls input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+}
+
+/* 可爱的提示框样式 */
+.kawaii-tip {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 12px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.kawaii-tip.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.tip-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.tip-icon {
+  font-size: 16px;
+  color: #fb7299;
+}
+
+/* 不同类型的提示样式 */
+.kawaii-tip.success {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.kawaii-tip.success .tip-icon {
+  color: #22c55e;
+}
+
+.kawaii-tip.warning {
+  background: #fefce8;
+  border-color: #fef08a;
+}
+
+.kawaii-tip.warning .tip-icon {
+  color: #eab308;
+}
+
+.kawaii-tip.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.kawaii-tip.error .tip-icon {
+  color: #ef4444;
+}
+
+/* 终止按钮样式 */
+#abortExport {
+  background: #fecaca;
+  color: #ef4444;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+#abortExport:hover {
+  background: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* 修改提示框在暗色模式下的样式 */
+html.dark .kawaii-tip {
+  background: #2b2b2b;
+  border-color: #3b3b3b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .kawaii-tip.success {
+  background: #132f1a;
+  border-color: #166534;
+}
+
+html.dark .kawaii-tip.warning {
+  background: #2e2815;
+  border-color: #854d0e;
+}
+
+html.dark .kawaii-tip.error {
+  background: #2e1515;
+  border-color: #991b1b;
+}
+
+/* 调整文字颜色，让它在暗色模式下更清晰 */
+html.dark .tip-content {
+  color: #e1e1e1;
+}
+
+/* 调整图标色，让它在暗色模式下更显眼 */
+html.dark .tip-icon {
+  color: #fc8bab;
+}
+
+html.dark .kawaii-tip.success .tip-icon {
+  color: #4ade80;
+}
+
+html.dark .kawaii-tip.warning .tip-icon {
+  color: #facc15;
+}
+
+html.dark .kawaii-tip.error .tip-icon {
+  color: #f87171;
+}
+
+/* 可爱的确认框样式 */
+.kawaii-confirm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-overlay);
+  z-index: 1000001;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kawaii-confirm.show {
+  opacity: 1;
+}
+
+.confirm-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  width: 100%;
+  text-align: center;
+  transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.kawaii-confirm.show .confirm-content {
+  transform: translateY(0);
+}
+
+.confirm-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.confirm-icon {
+  color: #fb7299;
+  font-size: 16px;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-yes {
+  background: #fecaca;
+  color: #ef4444;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-yes:hover {
+  background: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.confirm-no {
+  background: #fb7299;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-no:hover {
+  background: #fc8bab;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+}
+
+/* 暗色模式适配 */
+html.dark .confirm-content {
+  background: #2b2b2b;
+  border-color: #3b3b3b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 移除旧的样式 */
+.cover-setting,
+.invalid-video-setting {
+  margin-bottom: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}

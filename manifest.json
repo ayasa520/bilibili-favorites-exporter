@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "B站收藏夹导出工具",
+  "version": "1.0",
+  "description": "导出B站收藏夹内容的Chrome扩展",
+  "permissions": [
+    "cookies",
+    "downloads",
+    "*://*.biliplus.com/*"
+  ],
+  "host_permissions": [
+    "*://*.bilibili.com/*",
+    "*://*.biliplus.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://space.bilibili.com/*/favlist*"],
+      "js": ["js/content.js"],
+      "css": [
+        "css/content.css"
+      ]
+    }
+  ],
+  "web_accessible_resources": [{
+    "resources": ["fonts/*"],
+    "matches": ["*://*.bilibili.com/*"]
+  }],
+  "background": {
+    "service_worker": "js/background.js"
+  }
+} 
