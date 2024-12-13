@@ -1,4 +1,3 @@
-
 :root {
   --primary-color: #fb7299;
   --primary-hover: #fc8bab;
@@ -61,15 +60,18 @@ header h1 {
   display: flex;
   gap: 24px;
   padding: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .favorites-list {
+  position: relative;
   width: 300px;
   flex-shrink: 0;
   background: var(--bg-secondary);
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
   box-shadow: var(--shadow-1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .video-list {
@@ -83,8 +85,12 @@ header h1 {
 
 .section h2 {
   font-size: 16px;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
 }
 
 .folder-item {
@@ -763,4 +769,65 @@ header h1 {
 
 .detail-meta a:hover {
   color: var(--primary-color);
-} 
+}
+
+/* 修改收起按钮样式 */
+.collapse-sidebar {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 4px;
+  font-size: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapse-sidebar:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.favorites-list.collapsed .collapse-sidebar {
+  transform: rotate(180deg);
+}
+
+/* 修改收起状态的样式 */
+.favorites-list {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.favorites-list.collapsed {
+  width: 120px;
+  padding: 20px;
+}
+
+/* 收起时的标题样式 */
+.section h2 {
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+}
+
+/* 收起时隐藏数字和按钮 */
+.favorites-list.collapsed .folder-count {
+  display: none;
+}
+
+/* 收藏夹名字样式 */
+.folder-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 收起时的收藏夹项目样式 */
+.favorites-list.collapsed .folder-item {
+  padding: 12px;
+  margin-bottom: 8px;
+}
+ 

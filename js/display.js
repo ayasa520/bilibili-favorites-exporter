@@ -12,6 +12,32 @@ let state = {
 function initializePage() {
   initTheme();
   bindUploadEvents();
+  initResponsiveLayout();
+}
+
+// 添加响应式布局处理
+function initResponsiveLayout() {
+  const mediaQuery = window.matchMedia('(max-width: 1200px)');  // 可以调整这个宽度
+  const favoritesList = document.querySelector('.favorites-list');
+  
+  // 处理宽度变化
+  function handleWidthChange(e) {
+    if (e.matches) {
+      // 窗口变窄时自动折叠
+      favoritesList.classList.add('collapsed');
+      localStorage.setItem('sidebarCollapsed', 'true');
+    } else {
+      // 窗口变宽时自动展开
+      favoritesList.classList.remove('collapsed');
+      localStorage.setItem('sidebarCollapsed', 'false');
+    }
+  }
+
+  // 监听宽度变化
+  mediaQuery.addListener(handleWidthChange);
+  
+  // 初始检查
+  handleWidthChange(mediaQuery);
 }
 
 // 绑定文件上传事件 (｡>ㅿ<｡)
@@ -224,7 +250,9 @@ function bindEvents() {
       state.videos = folder.items || [];
       
       // 更新标题和列表
-      document.getElementById('currentFolder').textContent = `${folder.title} (${folder.media_count}个视频)`;
+      const folderTitle = folder.title;
+      document.getElementById('currentFolder').textContent = `${folderTitle} (${folder.media_count}个视频)`;
+      
       renderVideoList();
     });
   });
@@ -341,6 +369,28 @@ function bindEvents() {
       modal.classList.remove('active');
     }
   });
+
+  // 修改收起按钮的事件处理
+  const favoritesList = document.querySelector('.favorites-list');
+  const firstSectionTitle = favoritesList.querySelector('.section h2');
+
+  const collapseButton = document.createElement('button');
+  collapseButton.className = 'collapse-sidebar';
+  collapseButton.innerHTML = '<span class="arrow">◀</span>';
+  firstSectionTitle.appendChild(collapseButton);
+
+  collapseButton.addEventListener('click', () => {
+    // 只在手动点击时才保存状态
+    const isCollapsed = favoritesList.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', isCollapsed);
+  });
+
+  // 恢复上次的收起状态，但要考虑窗口宽度
+  const wasCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  const isNarrow = window.matchMedia('(max-width: 1200px)').matches;
+  if (wasCollapsed || isNarrow) {
+    favoritesList.classList.add('collapsed');
+  }
 }
 
 // 初始化页面 (灬ºωº灬)♡
