@@ -518,11 +518,19 @@ class BilibiliExporter {
                 this.updateProgress('正在获取...', item, 0, false);
 
                 if (item.type === 'fav') {
-                    const result = await this.exportFavoriteFolder(item, settings);
-                    results.favorites.push(result);
+                    try {
+                        const result = await this.exportFavoriteFolder(item, settings);
+                        results.favorites.push(result);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 } else {
-                    const result = await this.exportCollection(item, settings);
-                    results.collections.push(result);
+                    try {
+                        const result = await this.exportCollection(item, settings);
+                        results.collections.push(result);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
             }
 
@@ -559,6 +567,9 @@ class BilibiliExporter {
         }
 
         for (let i = 0; i < medias.length; i++) {
+            if (this.exportState.aborted) {
+                throw new Error('aborted');
+            }
             const media = medias[i];
             // 确保 media 是对象
             if (!media || typeof media !== 'object') {
