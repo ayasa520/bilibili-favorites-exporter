@@ -68,8 +68,8 @@ class BilibiliExporter {
             if (this.exportState.exporting) {
                 this.exportState.currentProgress.forEach((state) => {
                     this.updateProgress(
-                        state.text, 
-                        state.item, 
+                        state.text,
+                        state.item,
                         state.progress,
                         state.waiting
                     );
@@ -155,8 +155,8 @@ class BilibiliExporter {
         if (this.exportState.exporting) {
             this.exportState.currentProgress.forEach((state) => {
                 this.updateProgress(
-                    state.text, 
-                    state.item, 
+                    state.text,
+                    state.item,
                     state.progress,
                     state.waiting
                 );
@@ -175,7 +175,9 @@ class BilibiliExporter {
 
         try {
             // 获取自建收藏夹（保持默认选中）
-            const favResponse = await fetch(`https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=${this.uid}`);
+            const favResponse = await fetch(`https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=${this.uid}`,
+                { credentials: 'include' }
+            );
             const favData = await favResponse.json();
 
             if (favData.code === 0 && favData.data) {
@@ -212,7 +214,8 @@ class BilibiliExporter {
 
         while (true) {
             const response = await fetch(
-                `https://api.bilibili.com/x/v3/fav/folder/collected/list?pn=${pageNo}&ps=${pageSize}&up_mid=${this.uid}&platform=web`
+                `https://api.bilibili.com/x/v3/fav/folder/collected/list?pn=${pageNo}&ps=${pageSize}&up_mid=${this.uid}&platform=web`,
+                { credentials: 'include' }
             );
             const data = await response.json();
 
@@ -480,7 +483,7 @@ class BilibiliExporter {
     // 修改开始导出方法，使用统一的设置
     async startExport() {
         if (this.exportState.exporting) return;
-        
+
         const settings = this.getExportSettings();
         const selectedItems = [
             ...this.state.favorites.filter(f => f.checked),
@@ -494,11 +497,11 @@ class BilibiliExporter {
 
         // 添加开始导出的提示
         this.showKawaiiTip('开始导出，请不要关闭或刷新页面 (。>ω<。)', 'info');
-        
+
         this.exportState.exporting = true;
         this.exportState.aborted = false;
         this.updateExportControls();
-        
+
         // 显示所有选中项的等待状态
         selectedItems.forEach(item => {
             this.updateProgress('等待中...', item, 0, true);
@@ -513,7 +516,7 @@ class BilibiliExporter {
             for (const item of selectedItems) {
                 // 更新当前项为进行中状态
                 this.updateProgress('正在获取...', item, 0, false);
-                
+
                 if (item.type === 'fav') {
                     const result = await this.exportFavoriteFolder(item, settings);
                     results.favorites.push(result);
@@ -554,7 +557,7 @@ class BilibiliExporter {
             console.warn('medias 不是数组:', medias);
             return [];
         }
-        
+
         for (let i = 0; i < medias.length; i++) {
             const media = medias[i];
             // 确保 media 是对象
@@ -563,12 +566,12 @@ class BilibiliExporter {
                 continue;
             }
 
-            const isInvalid = media.title === '已失效视频' || 
-                             media.cover === 'http://i0.hdslb.com/bfs/archive/be27fd62c99036dce67efface486fb0a88ffed06.jpg';
-            
+            const isInvalid = media.title === '已失效视频' ||
+                media.cover === 'http://i0.hdslb.com/bfs/archive/be27fd62c99036dce67efface486fb0a88ffed06.jpg';
+
             if (isInvalid) {
                 media.invalid = true; // 始终标记失效状态
-                
+
                 if (processInvalidVideo) {
                     try {
                         const info = await this.fetchBiliplusInfo(media.bvid);
@@ -585,7 +588,7 @@ class BilibiliExporter {
                         console.warn('获取失效视频信息失败:', error);
                     }
                 }
-                
+
                 // 如果不处理失效视频或获取信息失败使用默认标记
                 media.title = `[已失效] 未知视频`;
                 // if (!saveCover) {
@@ -598,7 +601,7 @@ class BilibiliExporter {
                 // }
             }
         }
-        
+
         return medias;
     }
 
@@ -938,7 +941,7 @@ class BilibiliExporter {
                 // 正在导出时
                 startBtn.style.display = 'none';
                 abortBtn.style.display = 'block';
-                
+
                 // 禁用所有复选框
                 checkboxes.forEach(checkbox => {
                     checkbox.disabled = true;
@@ -947,7 +950,7 @@ class BilibiliExporter {
                 // 未在导出时
                 startBtn.style.display = 'block';
                 abortBtn.style.display = 'none';
-                
+
                 // 启用所有复选框
                 checkboxes.forEach(checkbox => {
                     checkbox.disabled = false;
