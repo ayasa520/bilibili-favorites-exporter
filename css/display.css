@@ -786,6 +786,9 @@ header h1 {
   align-items: center;
   justify-content: center;
 }
+.collapse-sidebar>.arrow{
+    color: var(--text-primary)
+}
 
 .collapse-sidebar:hover {
   color: var(--primary-color);
