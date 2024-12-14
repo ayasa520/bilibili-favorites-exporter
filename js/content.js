@@ -652,7 +652,7 @@ class BilibiliExporter {
             // 1. 先尝试常规查询
             const html = await sendMessage(`https://www.biliplus.com/video/av${avid}/`);
             try {
-                const jsonMatch = html.match(/window\.__INITIAL_STATE__=(.+?);\(function\(/);
+                const jsonMatch = html.match(/window\.addEventListener\('DOMContentLoaded',function\(\){view\((.+)\);}\);/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[1]);
                     if (data.videoInfo && data.videoInfo.title) {
