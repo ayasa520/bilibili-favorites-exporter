@@ -362,7 +362,7 @@ html.dark {
 .progress-bar {
   width: 100%;
   height: 4px;
-  background: rgba(251, 114, 153, 0.1);
+  background: #fb72991a;
   border-radius: 2px;
   overflow: hidden;
 }

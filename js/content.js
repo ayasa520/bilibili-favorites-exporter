@@ -70,8 +70,10 @@ class BilibiliExporter {
                     this.updateProgress(
                         state.text,
                         state.item,
-                        state.progress,
-                        state.waiting
+                        state.current,
+                        state.total,
+                        state.waiting,
+                        state.finished
                     );
                 });
             }
@@ -157,8 +159,10 @@ class BilibiliExporter {
                 this.updateProgress(
                     state.text,
                     state.item,
-                    state.progress,
-                    state.waiting
+                    state.current,
+                    state.total,
+                    state.waiting,
+                    state.finished
                 );
             });
         }
@@ -443,7 +447,7 @@ class BilibiliExporter {
         }
 
         const response = await fetch(
-            `https://api.bilibili.com/x/v3/fav/resource/list?media_id=${folderId}&pn=${page}&ps=${pageSize}`,
+            `https://api.bilibili.com/x/v3/fav/resource/list?media_id=${folderId}&pn=${page}&ps=${pageSize}&keyword=&order=mtime&type=0&tid=0&platform=web`,
             { credentials: 'include' }
         );
         const data = await response.json();
@@ -461,7 +465,7 @@ class BilibiliExporter {
         }
 
         const response = await fetch(
-            `https://api.bilibili.com/x/space/fav/season/list?season_id=${collectionId}&pn=${page}&ps=${pageSize}`,
+            `https://api.bilibili.com/x/space/fav/season/list?season_id=${collectionId}&pn=${page}&ps=${pageSize}&keyword=&order=mtime&type=0&tid=0&platform=web`,
             { credentials: 'include' }
         );
         const data = await response.json();
@@ -504,7 +508,7 @@ class BilibiliExporter {
 
         // 显示所有选中项的等待状态
         selectedItems.forEach(item => {
-            this.updateProgress('等待中...', item, 0, true);
+            this.updateProgress('等待中...', item, 0, 0, true, false);
         });
 
         const results = {
@@ -515,7 +519,7 @@ class BilibiliExporter {
         try {
             for (const item of selectedItems) {
                 // 更新当前项为进行中状态
-                this.updateProgress('正在获取...', item, 0, false);
+                this.updateProgress(`正在获取${item.title}`, item, 0, item.media_count, false, false);
 
                 if (item.type === 'fav') {
                     try {
@@ -772,14 +776,17 @@ class BilibiliExporter {
                 const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.medias.push(...processedMedias);
 
-                const progress = (result.medias.length / data.info.media_count) * 100;
                 this.updateProgress(
                     `正在获取 ${folder.title}`,
                     folder,
-                    Math.min(progress, 100)
+                    result.medias.length,
+                    result.media_count,
+                    false,
+                    false
                 );
 
-                if (result.medias.length >= data.info.media_count || !data.has_more) {
+                if (result.medias.length >= result.media_count || !data.has_more) {
+                    this.updateProgress(`已获取 ${folder.title}`, folder, result.medias.length, result.media_count, false, true);
                     break;
                 }
 
@@ -826,14 +833,17 @@ class BilibiliExporter {
                 const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.items.push(...processedMedias);
 
-                const progress = (result.items.length / collection.media_count) * 100;
                 this.updateProgress(
                     `正在获取 ${collection.title}`,
                     collection,
-                    Math.min(progress, 100)
+                    result.items.length,
+                    collection.media_count,
+                    false,
+                    false
                 );
 
                 if (result.items.length >= collection.media_count || !data.has_more) {
+                    this.updateProgress(`已获取 ${collection.title}`, collection, result.items.length, collection.media_count, false, true);
                     break;
                 }
 
@@ -850,14 +860,16 @@ class BilibiliExporter {
         }
     }
 
-    updateProgress(text, item = null, progress = 0, waiting = false) {
+    updateProgress(text, item = null, current = 0, total = 0, waiting = false, finished = false) {
         // 保存进度状态
         if (item) {
             this.exportState.currentProgress.set(`${item.type}_${item.id}`, {
                 text,
-                progress,
+                current,
+                total,
                 item,
-                waiting
+                waiting,
+                finished
             });
         }
 
@@ -884,12 +896,17 @@ class BilibiliExporter {
                     } else {
                         // 显示进度状态
                         progressText.className = 'progress-text';
-                        const currentCount = Math.floor(item.media_count * (progress / 100));
-                        progressText.textContent = `${currentCount}/${item.media_count}`;
-                        innerBar.style.width = `${progress}%`;
+                        progressText.textContent = `${current}/${total}`;
+                        if (total > 0) {
+                            innerBar.style.width = `${current / total * 100}%`;
+                        } else {
+                            innerBar.style.width = '100%';
+                        }
 
-                        if (progress === 100) {
+                        if (finished) {
                             innerBar.style.backgroundColor = '#52c41a';
+                        } else {
+                            innerBar.style.backgroundColor = '#fb7299';
                         }
                     }
                 }
