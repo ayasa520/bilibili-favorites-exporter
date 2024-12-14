@@ -519,7 +519,7 @@ class BilibiliExporter {
         try {
             for (const item of selectedItems) {
                 // 更新当前项为进行中状态
-                this.updateProgress(`正在获取${item.title}`, item, 0, item.media_count, false, false);
+                this.updateProgress(`正在获取 ${item.title}`, item, 0, item.media_count, false, false);
 
                 if (item.type === 'fav') {
                     try {

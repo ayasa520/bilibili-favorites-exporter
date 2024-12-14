@@ -4,7 +4,6 @@
   "version": "1.0",
   "description": "导出B站收藏夹内容的Chrome扩展",
   "permissions": [
-    "cookies",
     "downloads",
     "*://*.biliplus.com/*",
     "storage"
