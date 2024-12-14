@@ -558,7 +558,7 @@ class BilibiliExporter {
     }
 
     // 修改处理失效视频的方法，使用统一的设置
-    async processInvalidVideos(medias, processInvalidVideo, saveCover, updateCallback) {
+    async processInvalidVideos(medias, processInvalidVideo, saveCover) {
 
         // 确保 medias 是数组
         if (!Array.isArray(medias) || !medias) {
@@ -611,7 +611,6 @@ class BilibiliExporter {
                 //     // media.cover = null;
                 // }
             }
-            updateCallback(i + 1)
         }
 
         return medias;
@@ -770,19 +769,15 @@ class BilibiliExporter {
                 }
 
                 // 处理失效视频
-                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover,
-                    (cnt) => {
-                        const progress = ((result.medias.length + cnt) / data.info.media_count) * 100;
-                        this.updateProgress(
-                            `正在获取 ${folder.title}`,
-                            folder,
-                            Math.min(progress, 100)
-                        );
-
-                    }
-                );
+                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.medias.push(...processedMedias);
 
+                const progress = (result.medias.length / data.info.media_count) * 100;
+                this.updateProgress(
+                    `正在获取 ${folder.title}`,
+                    folder,
+                    Math.min(progress, 100)
+                );
 
                 if (result.medias.length >= data.info.media_count || !data.has_more) {
                     break;
@@ -828,19 +823,15 @@ class BilibiliExporter {
                 const data = await this.getCollectionContent(collection.id, page, pageSize);
 
                 // 处理失效视频
-                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover,
-                    (cnt) => {
-                        const progress = ((result.items.length + cnt) / collection.media_count) * 100;
-                        this.updateProgress(
-                            `正在获取 ${collection.title}`,
-                            collection,
-                            Math.min(progress, 100)
-                        );
-                    }
-                );
+                const processedMedias = await this.processInvalidVideos(data.medias || [], settings.processInvalidVideo, settings.saveCover);
                 result.items.push(...processedMedias);
 
-
+                const progress = (result.items.length / collection.media_count) * 100;
+                this.updateProgress(
+                    `正在获取 ${collection.title}`,
+                    collection,
+                    Math.min(progress, 100)
+                );
 
                 if (result.items.length >= collection.media_count || !data.has_more) {
                     break;
