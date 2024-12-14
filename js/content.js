@@ -658,14 +658,14 @@ class BilibiliExporter {
                 const jsonMatch = html.match(/window\.addEventListener\('DOMContentLoaded',function\(\){view\((.+)\);}\);/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[1]);
-                    if (data.videoInfo && data.videoInfo.title) {
+                    if (data.aid &&data.title) {
                         return {
                             aid: avid,
-                            title: data.videoInfo.title,
-                            intro: data.videoInfo.desc,
-                            pic: data.videoInfo.pic,
-                            duration: data.videoInfo.duration,
-                            pubtime: data.videoInfo.pubdate,
+                            title: data.title,
+                            intro: data.description,
+                            pic: data.pic,
+                            duration: data.v2_app_api?.duration || 0,
+                            pubtime: data.created,
                         };
                     }
                 }
@@ -688,7 +688,7 @@ class BilibiliExporter {
                     title: data.title,
                     intro: data.description,
                     pic: data.pic,
-                    duration: data.duration,
+                    duration: data.v2_app_api?.duration || 0,
                     pubtime: data.created,
                 };
             }
