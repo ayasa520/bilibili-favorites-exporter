@@ -32,33 +32,6 @@ class BilibiliExporter {
         return match[1];
     }
 
-    addExportButton() {
-        // 避免重复添加
-        if (document.querySelector('.export-favorites-btn')) {
-            return;
-        }
-
-        // 等待目标容器加载完成
-        const targetContainer = document.querySelector('.fav-container');
-        if (!targetContainer) {
-            // 如果容器还没加载，等待一会儿再试
-            setTimeout(() => this.addExportButton(), 500);
-            return;
-        }
-
-        const exportBtn = document.createElement('div');
-        exportBtn.className = 'export-favorites-btn';
-        exportBtn.innerHTML = `导出收藏夹`;
-
-        document.body.appendChild(exportBtn);
-        exportBtn.addEventListener('click', () => {
-            this.createDialog();
-            if (!this.state.initialized) {
-                this.loadData();
-            }
-        });
-    }
-
     createDialog() {
         // 如果对话框已存在，只需显示
         if (this.dialogEl) {
@@ -1032,13 +1005,8 @@ class BilibiliExporter {
 
     // 修改添加按钮的方法
     addExportButton() {
-        // 避免重复添加
-        if (document.querySelector('.export-favorites-btn')) {
-            return;
-        }
-
         // 等待目标容器加载完成
-        const targetContainer = document.querySelector('.fav-container');
+        const targetContainer = document.querySelector('.favlist-main');
         if (!targetContainer) {
             // 如果容器还没加载，等待一会儿再试
             setTimeout(() => this.addExportButton(), 500);
@@ -1127,11 +1095,8 @@ const initializeExporter = () => {
         }
 
         // 检查目标容器是否存在
-        const container = document.querySelector('.fav-container');
-        if (container && !currentExporter) {
-            currentExporter = new BilibiliExporter();
-            currentExporter.addExportButton();
-        }
+        currentExporter = new BilibiliExporter();
+        currentExporter.addExportButton();
     };
 
     // 监听 pushState 和 replaceState
