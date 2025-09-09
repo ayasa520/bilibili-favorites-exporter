@@ -193,6 +193,11 @@ function sortVideos(videos) {
       case 'title':     // 按标题排序
         return a.title.localeCompare(b.title, 'zh-CN');
         
+      case 'play':      // 按播放量排序
+        const playA = parseInt(a.cnt_info?.play) || 0;
+        const playB = parseInt(b.cnt_info?.play) || 0;
+        return playB - playA;    // 降序排列
+        
       default:
         return timeB - timeA;
     }
